@@ -117,19 +117,15 @@ export default function SearchPage() {
     const fetchPopular = async () => {
       setLoadingPopular(true);
       try {
-        const queries = ["podcast tiếng Việt", "Việt Nam podcast", "podcast hay"];
+        const queries = ["top podcast tieng viet", "Podcast Vietnam", "Việt Nam podcast"];
         const allShows: SpotifyShow[] = [];
         const seenIds = new Set<string>();
 
-        const results = await Promise.all(
-          queries.map((q) =>
-            fetch(`/api/search?q=${encodeURIComponent(q)}&type=show&market=VN&language=vi&limit=10`)
-              .then((r) => r.json())
-              .catch(() => ({ data: [] }))
-          )
-        );
-
-        for (const result of results) {
+        for (const q of queries) {
+          const res = await fetch(
+            `/api/search?q=${encodeURIComponent(q)}&type=show&market=VN&language=vi&limit=10`
+          );
+          const result = await res.json();
           for (const show of result.data || []) {
             if (!seenIds.has(show.id)) {
               seenIds.add(show.id);
@@ -138,9 +134,8 @@ export default function SearchPage() {
           }
         }
 
-        // Sort by total_episodes descending as a proxy for popularity
-        allShows.sort((a, b) => b.total_episodes - a.total_episodes);
-        setPopularShows(allShows.slice(0, 20));
+        allShows.sort((a: SpotifyShow, b: SpotifyShow) => b.total_episodes - a.total_episodes);
+        setPopularShows(allShows);
       } catch (err) {
         console.error("Failed to fetch popular podcasts:", err);
       } finally {
