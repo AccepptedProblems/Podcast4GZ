@@ -1,0 +1,271 @@
+openspec: 0.1.0
+
+metadata:
+  name: PodcastW4GZ
+  version: 1.0.0
+  description: >
+    Vietnamese podcast research & analysis tool powered by Spotify Web API.
+    Provides search, discovery, analytics, and comparison features for the
+    Vietnamese podcast ecosystem.
+  authors:
+    - name: W4GZ Team
+  license: MIT
+  repository: https://github.com/w4gz/podcastw4gz
+  created: 2026-02-27
+  updated: 2026-02-27
+
+project:
+  type: web-application
+  framework: next.js
+  language: typescript
+
+documents:
+  overview:
+    path: ./overview.md
+    description: Project purpose, architecture, and phased rollout plan
+
+  tech-stack:
+    path: ./tech-stack.md
+    description: Complete technology stack specification
+
+  project-structure:
+    path: ./project-structure.md
+    description: Exact source code directory and file structure
+
+  environment:
+    path: ./environment.md
+    description: Environment variables, secrets, and API credential setup
+
+  deployment:
+    path: ./deployment.md
+    description: Local development and production deployment guide
+
+  screens:
+    layout:
+      path: ./screens/layout.md
+      description: Root layout with Header, Sidebar, Footer, theme toggle, and responsive navigation
+    home:
+      path: ./screens/home.md
+      description: Home page with hero search, category buttons, trending section, and stats overview
+    search:
+      path: ./screens/search.md
+      description: Search page with filters, tabbed results, sort, and pagination
+    podcast-detail:
+      path: ./screens/podcast-detail.md
+      description: Podcast detail page with metadata header, episode list, analytics, and similar podcasts
+    episode-detail:
+      path: ./screens/episode-detail.md
+      description: Episode detail page with metadata, audio preview, and Spotify link
+    compare:
+      path: ./screens/compare.md
+      description: Compare page for side-by-side podcast comparison with charts and export
+    analytics-dashboard:
+      path: ./screens/analytics-dashboard.md
+      description: Analytics dashboard with landscape stats, charts, and distribution visualizations
+    directory:
+      path: ./screens/directory.md
+      description: Browsable A-Z directory with fuzzy search, filters, and trending sections
+
+  api:
+    routes:
+      path: ./api/routes.md
+      description: Complete API route specification with request/response schemas and error handling
+    spotify-integration:
+      path: ./api/spotify-integration.md
+      description: Spotify Web API integration details including auth, rate limiting, and TypeScript types
+
+features:
+  phase-1-mvp:
+    name: Phase 1 - MVP
+    status: planned
+    target: 2026-Q2
+    capabilities:
+      - id: search
+        name: Podcast Search
+        description: Search Vietnamese podcasts via Spotify API with filters
+        screens:
+          - search-page
+        api-routes:
+          - GET /api/search
+
+      - id: podcast-detail
+        name: Podcast Detail
+        description: View podcast metadata, description, and episode list
+        screens:
+          - podcast-detail-page
+        api-routes:
+          - GET /api/shows/{id}
+          - GET /api/shows/{id}/episodes
+
+      - id: episode-detail
+        name: Episode Detail
+        description: View episode metadata, description, and audio preview
+        screens:
+          - episode-detail-page
+        api-routes:
+          - GET /api/episodes/{id}
+
+      - id: comparison
+        name: Podcast Comparison
+        description: Side-by-side comparison of up to 4 podcasts
+        screens:
+          - compare-page
+        api-routes:
+          - GET /api/compare
+
+  phase-2-analytics:
+    name: Phase 2 - Analytics
+    status: planned
+    target: 2026-Q3
+    capabilities:
+      - id: analytics-dashboard
+        name: Analytics Dashboard
+        description: Episode frequency, duration trends, and publishing patterns
+        screens:
+          - analytics-page
+        api-routes:
+          - GET /api/analytics/{id}
+
+      - id: export
+        name: Data Export
+        description: Export analytics and podcast data as CSV/JSON
+        api-routes:
+          - GET /api/export
+
+  phase-3-directory:
+    name: Phase 3 - Directory
+    status: planned
+    target: 2026-Q4
+    capabilities:
+      - id: directory
+        name: Podcast Directory
+        description: Curated browsable directory of Vietnamese podcasts by category
+        screens:
+          - directory-page
+
+screens:
+  search-page:
+    path: /search
+    file: src/app/search/page.tsx
+    description: Search results page with filters and paginated results
+
+  podcast-detail-page:
+    path: /podcast/{id}
+    file: src/app/podcast/[id]/page.tsx
+    description: Podcast detail view with metadata and episode list
+
+  episode-detail-page:
+    path: /episode/{id}
+    file: src/app/episode/[id]/page.tsx
+    description: Episode detail view with metadata and audio preview
+
+  compare-page:
+    path: /compare
+    file: src/app/compare/page.tsx
+    description: Side-by-side podcast comparison (up to 4)
+
+  analytics-page:
+    path: /analytics
+    file: src/app/analytics/page.tsx
+    description: Analytics dashboard with charts and stats
+
+  directory-page:
+    path: /directory
+    file: src/app/directory/page.tsx
+    description: Browsable podcast directory by category
+
+api:
+  base-url: /api
+  auth: none  # Public API routes; Spotify auth is server-side only
+  routes:
+    - method: GET
+      path: /api/search
+      params:
+        - name: q
+          type: string
+          required: true
+          description: Search query string
+        - name: market
+          type: string
+          required: false
+          default: VN
+          description: Spotify market code
+        - name: offset
+          type: integer
+          required: false
+          default: 0
+        - name: limit
+          type: integer
+          required: false
+          default: 20
+          max: 50
+      response: SpotifySearchResponse
+
+    - method: GET
+      path: /api/shows/{id}
+      params:
+        - name: id
+          type: string
+          required: true
+          in: path
+          description: Spotify show ID
+      response: SpotifyShow
+
+    - method: GET
+      path: /api/shows/{id}/episodes
+      params:
+        - name: id
+          type: string
+          required: true
+          in: path
+        - name: offset
+          type: integer
+          required: false
+          default: 0
+        - name: limit
+          type: integer
+          required: false
+          default: 20
+          max: 50
+      response: SpotifyEpisodeList
+
+    - method: GET
+      path: /api/episodes/{id}
+      params:
+        - name: id
+          type: string
+          required: true
+          in: path
+      response: SpotifyEpisode
+
+    - method: GET
+      path: /api/compare
+      params:
+        - name: ids
+          type: string
+          required: true
+          description: Comma-separated Spotify show IDs (max 4)
+      response: CompareResponse
+
+    - method: GET
+      path: /api/analytics/{id}
+      params:
+        - name: id
+          type: string
+          required: true
+          in: path
+      response: AnalyticsResponse
+
+    - method: GET
+      path: /api/export
+      params:
+        - name: id
+          type: string
+          required: true
+          description: Spotify show ID
+        - name: format
+          type: string
+          required: false
+          default: csv
+          enum: [csv, json]
+      response: FileDownload

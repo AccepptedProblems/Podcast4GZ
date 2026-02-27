@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model IndexedShow {
+  id                  String   @id
+  name                String
+  description         String
+  publisher           String
+  languages           String   // JSON array stored as string
+  totalEpisodes       Int
+  explicit            Boolean  @default(false)
+  imageUrl            String?
+  externalUrl         String?
+  isExternallyHosted  Boolean  @default(false)
+  availableMarkets    String   // JSON array stored as string
+
+  // Computed analytics
+  avgDurationMs       Int?
+  totalContentHoursF  Float?
+  releaseFrequencyDays Float?
+  publishingPattern   String?  // "weekly" | "biweekly" | "monthly" | "irregular"
+  activeStatus        String?  // "active" | "hiatus" | "ended"
+  popularityScore     Float    @default(0)
+  viewCount           Int      @default(0)
+
+  // Timestamps
+  lastSyncedAt        DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  episodes            IndexedEpisode[]
+
+  @@index([publisher])
+  @@index([activeStatus])
+  @@index([popularityScore])
+  @@index([name])
+}
+
+model IndexedEpisode {
+  id                  String   @id
+  name                String
+  description         String
+  durationMs          Int
+  releaseDate         String
+  releaseDatePrecision String  // "year" | "month" | "day"
+  languages           String   // JSON array
+  explicit            Boolean  @default(false)
+  imageUrl            String?
+  audioPreviewUrl     String?
+  externalUrl         String?
+  isExternallyHosted  Boolean  @default(false)
+
+  // Relations
+  showId              String
+  show                IndexedShow @relation(fields: [showId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([showId])
+  @@index([releaseDate])
+  @@index([durationMs])
+}
+
+model AppAnalytics {
+  id          String   @id @default(cuid())
+  entityType  String   // "show" | "episode" | "search"
+  entityId    String?
+  action      String   // "view" | "search" | "compare"
+  query       String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
